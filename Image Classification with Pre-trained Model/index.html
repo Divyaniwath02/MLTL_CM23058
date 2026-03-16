@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Recognition using MobileNet</title>
+
+    <!-- CSS file -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- TensorFlow.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+    <!-- MobileNet Pre-trained Model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Image Classification System</h1>
+        <h3>Using MobileNet Model in Browser</h3>
+        <p><strong>Student: Divyani Wath</strong></p>
+    </header>
+
+    <main class="workspace">
+
+        <!-- Control Section -->
+        <div class="control-panel">
+
+            <h4>Step 1: Upload an Image</h4>
+            <input type="file" id="image-upload" accept="image/*">
+
+            <h4>Step 2: Choose Model</h4>
+            <select id="model-select">
+                <option value="mobilenet">MobileNet (Fast)</option>
+                <option value="resnet">ResNet50 (Demo)</option>
+            </select>
+
+            <h4>Step 3: Run Classification</h4>
+            <button id="classify-btn" onclick="classifyImage()" disabled>
+                Analyze Image
+            </button>
+
+        </div>
+
+        <!-- Image Preview -->
+        <div class="image-panel">
+
+            <h4>Uploaded Image Preview</h4>
+
+            <div class="preview-box">
+                <img id="image-display" src="" alt="No image selected" style="display:none;">
+            </div>
+
+        </div>
+
+        <!-- Prediction Results -->
+        <div class="results-panel">
+
+            <h4>Model Status</h4>
+            <p id="status" class="status-msg">
+                Loading MobileNet model...
+            </p>
+
+            <h4>Prediction Results</h4>
+            <ul id="predictions-list">
+                <li>Upload an image to start prediction.</li>
+            </ul>
+
+        </div>
+
+    </main>
+
+    <footer>
+        <p><strong>Note:</strong> Practical on Image Classification using TensorFlow.js</p>
+    </footer>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
