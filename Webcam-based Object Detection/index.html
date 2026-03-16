@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Real-Time Webcam Object Detection</title>
+
+<!-- TensorFlow.js Library -->
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+<!-- MobileNet Model -->
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+<!-- COCO-SSD Object Detection Model -->
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+<!-- External CSS -->
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="main-container">
+
+<header class="page-header">
+<h1>Webcam Based Object Detection</h1>
+<p>Real-Time Object Recognition using TensorFlow.js</p>
+
+<div class="student-details">
+<p><strong>Name:</strong> Divyani Wath</p>
+<p><strong>Subject:</strong> Machine Learning Lab</p>
+</div>
+</header>
+
+<section class="camera-section">
+
+<div class="camera-wrapper">
+
+<!-- Webcam video stream -->
+
+<video id="webcamVideo" autoplay playsinline muted></video>
+
+<!-- Canvas overlay for drawing detection boxes -->
+
+<canvas id="detectionCanvas"></canvas>
+
+<!-- Loading message -->
+
+<div id="modelLoading" class="loading-text">
+Model is loading... Please wait
+</div>
+
+</div>
+
+</section>
+
+<section class="prediction-section">
+
+<h2>Detected Objects</h2>
+
+<div id="predictionOutput" class="prediction-box">
+
+<p class="waiting-msg">
+Waiting for webcam to start...
+</p>
+
+</div>
+
+</section>
+
+<footer class="footer">
+<p>Webcam Object Detection using MobileNet & TensorFlow.js</p>
+</footer>
+
+</div>
+
+<!-- JavaScript file -->
+
+<script src="script.js"></script>
+
+</body>
+
+</html>

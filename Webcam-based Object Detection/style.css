@@ -1,0 +1,36 @@
+/* Container ko relative rakhein taaki canvas video ke upar fit ho jaye */
+.camera-wrapper {
+    position: relative;
+    width: fit-content;
+    margin: 20px auto;
+    border: 2px solid #333;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Video ka size set karein */
+#webcamVideo {
+    display: block;
+    width: 640px; /* Aap isse change kar sakte hain */
+    height: auto;
+}
+
+/* Canvas ko video ke bilkul upar "chipka" dein */
+#detectionCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+/* Loading text ko center mein dikhane ke liye */
+#modelLoading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+}
