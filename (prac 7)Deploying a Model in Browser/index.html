@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Food Classifier</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f4f7fb;
+  padding:20px;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:20px;
+}
+button{
+  padding:10px 20px;
+  background:#3b72f0;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+img{
+  width:60px;
+  height:60px;
+  margin:5px;
+  border-radius:6px;
+}
+.bar{
+  height:8px;
+  background:#ddd;
+  border-radius:4px;
+  margin-top:5px;
+}
+.fill{
+  height:100%;
+  background:#3b72f0;
+  border-radius:4px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🍔 Food Classifier (Pizza, Burger, Fries)</h2>
+
+<div class="card" id="classes"></div>
+
+<div class="card">
+  <button onclick="train()">Train Model</button>
+</div>
+
+<div class="card">
+  <input type="file" id="test">
+  <button onclick="predict()">Predict</button>
+  <h3 id="result"></h3>
+  <div id="bars"></div>
+</div>
+
+<script>
+let net, model;
+let data = [];
+
+const CLASSES = ["Pizza 🍕","Burger 🍔","Fries 🍟"];
+
+window.onload = async()=>{
+  net = await mobilenet.load();
+  CLASSES.forEach(addClass);
+};
+
+function addClass(name){
+  let i = data.length;
+  data.push({name, imgs:[]});
+
+  let div = document.createElement("div");
+  div.innerHTML = `
+    <h4>${name}</h4>
+    <input type="file" multiple onchange="loadImg(event,${i})">
+    <div id="img-${i}"></div>
+  `;
+  document.getElementById("classes").appendChild(div);
+}
+
+function loadImg(e,i){
+  for(let f of e.target.files){
+    let img = new Image();
+    img.src = URL.createObjectURL(f);
+    img.onload = ()=>{
+      data[i].imgs.push(img);
+      document.getElementById("img-"+i).appendChild(img);
+    };
+  }
+}
+
+function feature(img){
+  return tf.tidy(()=>{
+    return net.infer(
+      tf.browser.fromPixels(img)
+      .resizeNearestNeighbor([224,224])
+      .toFloat().div(127).sub(1).expandDims(),true
+    );
+  });
+}
+
+async function train(){
+  let xs=[], ys=[];
+
+  data.forEach((c,i)=>{
+    c.imgs.forEach(img=>{
+      xs.push(feature(img));
+      ys.push(i);
+    });
+  });
+
+  let X = tf.concat(xs);
+  let Y = tf.oneHot(tf.tensor1d(ys,'int32'), data.length);
+
+  model = tf.sequential();
+  model.add(tf.layers.dense({inputShape:[1024],units:100,activation:'relu'}));
+  model.add(tf.layers.dense({units:data.length,activation:'softmax'}));
+
+  model.compile({optimizer:'adam',loss:'categoricalCrossentropy'});
+
+  await model.fit(X,Y,{epochs:20});
+
+  alert("Training Done ✅");
+}
+
+async function predict(){
+  let file = document.getElementById("test").files[0];
+  let img = new Image();
+
+  img.onload = async()=>{
+    let pred = model.predict(feature(img));
+    let res = await pred.data();
+
+    let idx = res.indexOf(Math.max(...res));
+    document.getElementById("result").innerText = "Prediction: "+data[idx].name;
+
+    let bars = document.getElementById("bars");
+    bars.innerHTML = "";
+
+    res.forEach((p,i)=>{
+      bars.innerHTML += `
+        <div>
+          ${data[i].name} (${(p*100).toFixed(1)}%)
+          <div class="bar">
+            <div class="fill" style="width:${p*100}%"></div>
+          </div>
+        </div>
+      `;
+    });
+  };
+
+  img.src = URL.createObjectURL(file);
+}
+</script>
+
+</body>
+</html>
