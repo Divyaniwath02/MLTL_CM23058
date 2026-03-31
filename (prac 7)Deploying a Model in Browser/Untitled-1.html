@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transfer Learning — Image Classifier</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+
+<style>
+/* SAME CSS — no changes */
+:root {
+  --bg:#f4f7fb; --white:#fff; --ink:#18202e; --muted:#7b8aaa;
+  --border:#e2e7f2; --blue:#3b72f0; --green:#16a34a;
+  --amber:#d97706; --red:#e03e3e;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--bg); padding:30px; }
+.card { background:#fff; padding:20px; border-radius:10px; margin-bottom:20px; }
+.btn { padding:10px 20px; background:var(--blue); color:#fff; border:none; border-radius:6px; cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<h2>🍔 Food Classifier (Pizza, Burger, Fries)</h2>
+
+<div class="card">
+  <h3>Add Classes & Upload Images</h3>
+  <div id="classes"></div>
+</div>
+
+<div class="card">
+  <button class="btn" onclick="trainModel()">Train Model</button>
+</div>
+
+<div class="card">
+  <input type="file" id="test-img">
+  <button class="btn" onclick="predict()">Predict</button>
+  <h3 id="result"></h3>
+</div>
+
+<script>
+
+// =========================
+// STATE
+// =========================
+let mobileNet;
+let classifier;
+let data = [];
+
+// 🔥 CHANGED HERE (fruits ➝ food)
+const DEFAULT_CLASSES = ['Pizza 🍕', 'Burger 🍔', 'Fries 🍟'];
+
+// =========================
+// INIT
+// =========================
+window.onload = async () => {
+  mobileNet = await mobilenet.load();
+  DEFAULT_CLASSES.forEach(addClass);
+};
+
+// =========================
+// ADD CLASS
+// =========================
+function addClass(name){
+  const idx = data.length;
+  data.push({name, images:[]});
+
+  const div = document.createElement('div');
+  div.innerHTML = `
+    <h4>${name}</h4>
+    <input type="file" multiple onchange="loadImages(event, ${idx})">
+  `;
+  document.getElementById('classes').appendChild(div);
+}
+
+// =========================
+// LOAD IMAGES
+// =========================
+function loadImages(e, idx){
+  const files = e.target.files;
+  for(let f of files){
+    const img = new Image();
+    img.src = URL.createObjectURL(f);
+    data[idx].images.push(img);
+  }
+}
+
+// =========================
+// FEATURE EXTRACTION
+// =========================
+function extract(img){
+  return tf.tidy(()=>{
+    const tensor = tf.browser.fromPixels(img)
+      .resizeNearestNeighbor([224,224])
+      .toFloat().div(127).sub(1).expandDims();
+
+    return mobileNet.infer(tensor,true);
+  });
+}
+
+// =========================
+// TRAIN MODEL
+// =========================
+async function trainModel(){
+
+  let xs = [];
+  let ys = [];
+
+  data.forEach((cls,i)=>{
+    cls.images.forEach(img=>{
+      xs.push(extract(img));
+      ys.push(i);
+    });
+  });
+
+  const X = tf.concat(xs);
+  const Y = tf.oneHot(tf.tensor1d(ys,'int32'), data.length);
+
+  classifier = tf.sequential();
+  classifier.add(tf.layers.dense({inputShape:[1024], units:100, activation:'relu'}));
+  classifier.add(tf.layers.dense({units:data.length, activation:'softmax'}));
+
+  classifier.compile({
+    optimizer:'adam',
+    loss:'categoricalCrossentropy',
+    metrics:['accuracy']
+  });
+
+  await classifier.fit(X,Y,{epochs:20});
+
+  alert("Training Done ✅");
+}
+
+// =========================
+// PREDICT
+// =========================
+async function predict(){
+  const file = document.getElementById('test-img').files[0];
+  const img = new Image();
+
+  img.onload = async ()=>{
+    const feat = extract(img);
+    const pred = classifier.predict(feat);
+    const res = await pred.data();
+
+    const idx = res.indexOf(Math.max(...res));
+
+    document.getElementById('result').innerText =
+      `Prediction: ${data[idx].name}`;
+  }
+
+  img.src = URL.createObjectURL(file);
+}
+
+</script>
+
+</body>
+</html>
